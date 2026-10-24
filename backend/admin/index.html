@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TEDx Gallery — Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    /* ── Reset & Tokens ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #000;
+      --surface: #0d0d0d;
+      --surface-2: #1a1a1a;
+      --surface-3: #262626;
+      --accent: #eb0028;
+      --accent-dim: rgba(235,0,40,.12);
+      --text-1: #fff;
+      --text-2: rgba(255,255,255,.55);
+      --text-3: rgba(255,255,255,.3);
+      --divider: rgba(255,255,255,.08);
+      --radius: 2px;
+      --font: 'Inter', system-ui, sans-serif;
+    }
+    html { scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--text-1);
+      font-family: var(--font);
+      font-size: 14px;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+    img { display: block; max-width: 100%; }
+    button { font: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    input, select, textarea { font: inherit; }
+    ::-webkit-scrollbar { width: 3px; height: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface-3); }
+    :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    /* ── Layout ──────────────────────────────────────────────── */
+    .app { display: flex; flex-direction: column; min-height: 100vh; }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .header {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; gap: 16px;
+      padding: 0 24px;
+      height: 56px;
+      background: var(--surface);
+      border-bottom: 1px solid var(--divider);
+    }
+    .header__logo {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: .3em; text-transform: uppercase;
+      color: var(--text-2);
+    }
+    .header__logo span { color: var(--accent); }
+    .header__sep { flex: 1; }
+    .header__status {
+      font-size: 11px; color: var(--text-3); letter-spacing: .05em;
+    }
+
+    /* ── Main ────────────────────────────────────────────────── */
+    .main { flex: 1; padding: 24px; max-width: 1400px; width: 100%; margin: 0 auto; }
+
+    /* ── Toolbar ─────────────────────────────────────────────── */
+    .toolbar {
+      display: flex; align-items: center; gap: 10px;
+      margin-bottom: 20px; flex-wrap: wrap;
+    }
+    .toolbar__left { display: flex; gap: 10px; flex: 1; flex-wrap: wrap; }
+    .toolbar__right { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* ── Buttons ─────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      font-size: 12px; font-weight: 500; letter-spacing: .08em; text-transform: uppercase;
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      color: var(--text-2); background: transparent;
+      transition: color .2s, border-color .2s, background .2s;
+      white-space: nowrap;
+    }
+    .btn:hover { color: var(--text-1); border-color: rgba(255,255,255,.2); }
+    .btn--primary { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+    .btn--primary:hover { background: rgba(235,0,40,.22); }
+    .btn--danger { color: #ff4444; border-color: rgba(255,68,68,.3); }
+    .btn--danger:hover { background: rgba(255,68,68,.1); }
+    .btn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* ── Filter row ──────────────────────────────────────────── */
+    .filters {
+      display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .filter-select {
+      background: var(--surface-2); color: var(--text-1);
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      padding: 6px 10px; font-size: 12px;
+      appearance: none; cursor: pointer;
+    }
+    .filter-select:focus { border-color: var(--accent); outline: none; }
+    .search-input {
+      background: var(--surface-2); color: var(--text-1);
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      padding: 6px 12px; font-size: 12px; width: 200px;
+    }
+    .search-input::placeholder { color: var(--text-3); }
+    .search-input:focus { border-color: var(--accent); outline: none; }
+
+    /* ── Table ───────────────────────────────────────────────── */
+    .table-wrap { overflow-x: auto; border: 1px solid var(--divider); border-radius: var(--radius); }
+    table { width: 100%; border-collapse: collapse; }
+    thead tr { background: var(--surface-2); }
+    th {
+      padding: 10px 12px;
+      text-align: left; font-size: 10px; font-weight: 600;
+      letter-spacing: .15em; text-transform: uppercase;
+      color: var(--text-3); white-space: nowrap;
+      border-bottom: 1px solid var(--divider);
+    }
+    td {
+      padding: 10px 12px;
+      font-size: 12px; color: var(--text-2);
+      border-bottom: 1px solid var(--divider);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,.02); }
+    tr.selected td { background: var(--accent-dim); }
+
+    .thumb {
+      width: 52px; height: 36px;
+      object-fit: cover; border-radius: var(--radius);
+      background: var(--surface-3);
+    }
+    .thumb-placeholder {
+      width: 52px; height: 36px;
+      background: var(--surface-3); border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px;
+    }
+    .title-cell { color: var(--text-1); font-weight: 400; max-width: 220px; }
+    .title-cell p { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .badge {
+      display: inline-block; padding: 2px 7px;
+      font-size: 10px; font-weight: 500; letter-spacing: .08em;
+      text-transform: uppercase; border-radius: 1px;
+    }
+    .badge--pub  { background: rgba(80,200,120,.12); color: #50c878; }
+    .badge--draft{ background: rgba(255,255,255,.06); color: var(--text-3); }
+    .badge--feat { background: var(--accent-dim); color: var(--accent); }
+    .row-actions { display: flex; gap: 6px; }
+    .icon-btn {
+      width: 28px; height: 28px; border-radius: var(--radius);
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-3); font-size: 14px;
+      transition: color .2s, background .2s;
+    }
+    .icon-btn:hover { color: var(--text-1); background: var(--surface-3); }
+    .icon-btn--danger:hover { color: #ff4444; background: rgba(255,68,68,.08); }
+
+    /* Checkbox */
+    input[type="checkbox"] {
+      width: 14px; height: 14px; accent-color: var(--accent); cursor: pointer;
+    }
+
+    /* ── Empty / Loading ─────────────────────────────────────── */
+    .empty-row td {
+      text-align: center; padding: 48px; color: var(--text-3);
+      font-size: 13px; letter-spacing: .1em;
+    }
+
+    /* ── Upload Modal ─────────────────────────────────────────── */
+    .modal-backdrop {
+      display: none; position: fixed; inset: 0; z-index: 200;
+      background: rgba(0,0,0,.85);
+      align-items: center; justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: var(--surface);
+      border: 1px solid var(--divider);
+      border-radius: var(--radius);
+      width: min(560px, 95vw);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal__header {
+      display: flex; align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--divider);
+    }
+    .modal__title {
+      font-size: 13px; font-weight: 600; letter-spacing: .1em;
+      text-transform: uppercase; flex: 1;
+    }
+    .modal__body { padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+    .modal__footer {
+      padding: 14px 20px;
+      border-top: 1px solid var(--divider);
+      display: flex; gap: 10px; justify-content: flex-end;
+    }
+
+    /* Form fields */
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    .field label { font-size: 10px; font-weight: 600; letter-spacing: .15em; text-transform: uppercase; color: var(--text-3); }
+    .field input, .field select, .field textarea {
+      background: var(--surface-2); color: var(--text-1);
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      padding: 8px 10px; font-size: 13px;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus {
+      border-color: var(--accent); outline: none;
+    }
+    .field textarea { resize: vertical; min-height: 72px; }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .field-check { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+    .field-check span { font-size: 12px; color: var(--text-2); }
+
+    /* Dropzone */
+    .dropzone {
+      border: 1px dashed var(--divider);
+      border-radius: var(--radius);
+      padding: 32px;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+    .dropzone:hover, .dropzone.drag-over {
+      border-color: var(--accent);
+      background: var(--accent-dim);
+    }
+    .dropzone p { font-size: 12px; color: var(--text-3); margin-top: 6px; }
+    .dropzone-icon { font-size: 28px; margin-bottom: 6px; }
+    #file-list { display: flex; flex-direction: column; gap: 4px; max-height: 120px; overflow-y: auto; }
+    .file-item { font-size: 11px; color: var(--text-2); padding: 3px 0; border-bottom: 1px solid var(--divider); }
+
+    /* ── Edit modal ──────────────────────────────────────────── */
+    /* Same modal styles — reused */
+
+    /* ── Progress/toast ──────────────────────────────────────── */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px; z-index: 500;
+      background: var(--surface-2); border: 1px solid var(--divider);
+      border-radius: var(--radius);
+      padding: 12px 18px;
+      font-size: 13px; color: var(--text-1);
+      opacity: 0; transform: translateY(8px);
+      transition: opacity .25s, transform .25s;
+      pointer-events: none; min-width: 220px;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast--success { border-left: 3px solid #50c878; }
+    .toast--error   { border-left: 3px solid var(--accent); }
+
+    /* ── Pagination ──────────────────────────────────────────── */
+    .pagination {
+      display: flex; align-items: center; justify-content: center;
+      gap: 8px; padding: 20px 0 8px;
+      font-size: 12px; color: var(--text-3);
+    }
+    .page-btn {
+      width: 30px; height: 30px;
+      display: flex; align-items: center; justify-content: center;
+      border: 1px solid var(--divider); border-radius: var(--radius);
+      color: var(--text-2); font-size: 12px;
+      transition: color .2s, border-color .2s;
+    }
+    .page-btn:hover { color: var(--text-1); border-color: rgba(255,255,255,.2); }
+    .page-btn.active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__logo"><span>TEDx</span> Gallery Admin</div>
+    <div class="header__sep"></div>
+    <div class="header__status" id="js-status">Loading…</div>
+  </header>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="toolbar__left">
+        <button class="btn btn--primary" id="js-upload-btn">⬆ Upload Images</button>
+        <button class="btn btn--danger" id="js-bulk-delete" disabled>🗑 Delete Selected</button>
+        <button class="btn" id="js-bulk-unpublish" disabled>⊘ Unpublish Selected</button>
+        <button class="btn" id="js-bulk-publish" disabled>✓ Publish Selected</button>
+      </div>
+      <div class="toolbar__right">
+        <button class="btn" id="js-refresh">↻ Refresh</button>
+      </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filters">
+      <input class="search-input" type="search" id="js-search" placeholder="Search title…" />
+      <select class="filter-select" id="js-filter-category">
+        <option value="">All Categories</option>
+        <option value="events">TEDx Events</option>
+        <option value="speakers">Speakers</option>
+        <option value="audience">Audience</option>
+        <option value="bts">Behind The Scenes</option>
+        <option value="team">Team & Community</option>
+      </select>
+      <select class="filter-select" id="js-filter-published">
+        <option value="">All Status</option>
+        <option value="true">Published</option>
+        <option value="false">Drafts</option>
+      </select>
+    </div>
+
+    <!-- Table -->
+    <div class="table-wrap">
+      <table id="js-table">
+        <thead>
+          <tr>
+            <th><input type="checkbox" id="js-select-all" aria-label="Select all" /></th>
+            <th>Image</th>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Event</th>
+            <th>Year</th>
+            <th>Status</th>
+            <th>Featured</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="js-tbody">
+          <tr class="empty-row"><td colspan="9">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination" id="js-pagination"></div>
+  </main>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-backdrop" id="js-upload-modal" role="dialog" aria-modal="true" aria-label="Upload images">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">Upload Images</span>
+      <button class="icon-btn" id="js-upload-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="dropzone" id="js-dropzone" tabindex="0" aria-label="Drop images here or click to browse">
+        <div class="dropzone-icon">📸</div>
+        <strong>Drop images here</strong>
+        <p>or click to browse — JPEG, PNG, WebP · max 25 MB each</p>
+        <input type="file" id="js-file-input" multiple accept="image/*" style="display:none" />
+      </div>
+      <div id="js-file-list" aria-live="polite"></div>
+
+      <div class="field-row">
+        <div class="field">
+          <label for="up-title">Default Title <span style="color:var(--text-3)">(optional)</span></label>
+          <input type="text" id="up-title" placeholder="Leave blank to use filename" />
+        </div>
+        <div class="field">
+          <label for="up-category">Category</label>
+          <select id="up-category">
+            <option value="events">TEDx Events</option>
+            <option value="speakers">Speakers</option>
+            <option value="audience">Audience</option>
+            <option value="bts">Behind The Scenes</option>
+            <option value="team">Team & Community</option>
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="up-event">Event Name</label>
+          <input type="text" id="up-event" placeholder="e.g. TEDxGGSIPU 2024" />
+        </div>
+        <div class="field">
+          <label for="up-year">Year</label>
+          <input type="number" id="up-year" placeholder="2024" min="2000" max="2099" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="up-desc">Description <span style="color:var(--text-3)">(optional)</span></label>
+        <textarea id="up-desc" placeholder="Caption or description…"></textarea>
+      </div>
+      <div class="field">
+        <label for="up-tags">Tags <span style="color:var(--text-3)">(comma-separated)</span></label>
+        <input type="text" id="up-tags" placeholder="speaker, stage, 2024" />
+      </div>
+      <div style="display:flex;gap:20px">
+        <label class="field-check">
+          <input type="checkbox" id="up-featured" />
+          <span>Mark as Featured</span>
+        </label>
+        <label class="field-check">
+          <input type="checkbox" id="up-published" checked />
+          <span>Publish immediately</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn" id="js-upload-cancel">Cancel</button>
+      <button class="btn btn--primary" id="js-upload-submit">⬆ Upload</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal-backdrop" id="js-edit-modal" role="dialog" aria-modal="true" aria-label="Edit image">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">Edit Image</span>
+      <button class="icon-btn" id="js-edit-close" aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <input type="hidden" id="edit-id" />
+      <div class="field">
+        <label for="edit-title">Title</label>
+        <input type="text" id="edit-title" />
+      </div>
+      <div class="field">
+        <label for="edit-desc">Description</label>
+        <textarea id="edit-desc"></textarea>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-category">Category</label>
+          <select id="edit-category">
+            <option value="events">TEDx Events</option>
+            <option value="speakers">Speakers</option>
+            <option value="audience">Audience</option>
+            <option value="bts">Behind The Scenes</option>
+            <option value="team">Team & Community</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="edit-event">Event</label>
+          <input type="text" id="edit-event" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="edit-year">Year</label>
+          <input type="number" id="edit-year" min="2000" max="2099" />
+        </div>
+        <div class="field">
+          <label for="edit-order">Display Order</label>
+          <input type="number" id="edit-order" min="0" />
+        </div>
+      </div>
+      <div class="field">
+        <label for="edit-tags">Tags <span style="color:var(--text-3)">(comma-separated)</span></label>
+        <input type="text" id="edit-tags" />
+      </div>
+      <div style="display:flex;gap:20px">
+        <label class="field-check">
+          <input type="checkbox" id="edit-featured" />
+          <span>Featured</span>
+        </label>
+        <label class="field-check">
+          <input type="checkbox" id="edit-published" />
+          <span>Published</span>
+        </label>
+      </div>
+    </div>
+    <div class="modal__footer">
+      <button class="btn" id="js-edit-cancel">Cancel</button>
+      <button class="btn btn--primary" id="js-edit-save">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="js-toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ── Config ─────────────────────────────────────────────── */
+const API = '/api/admin';
+const PAGE_SIZE = 25;
+
+/* ── State ──────────────────────────────────────────────── */
+let allImages = [];
+let filtered  = [];
+let selected  = new Set();
+let page      = 1;
+let selectedFiles = [];
+
+/* ── Init ───────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+  loadImages();
+  bindUI();
+});
+
+/* ── Load & render ──────────────────────────────────────── */
+async function loadImages() {
+  setStatus('Loading…');
+  try {
+    const res = await fetch(`${API}/images`);
+    if (!res.ok) throw new Error(res.statusText);
+    allImages = await res.json();
+    applyFilters();
+    setStatus(`${allImages.length} images`);
+  } catch (e) {
+    setStatus('Error loading');
+    showToast('Failed to load images: ' + e.message, 'error');
+  }
+}
+
+function applyFilters() {
+  const q    = document.getElementById('js-search').value.toLowerCase();
+  const cat  = document.getElementById('js-filter-category').value;
+  const pub  = document.getElementById('js-filter-published').value;
+
+  filtered = allImages.filter(img => {
+    if (q   && !img.title.toLowerCase().includes(q)) return false;
+    if (cat && img.category !== cat) return false;
+    if (pub === 'true'  && !img.published) return false;
+    if (pub === 'false' &&  img.published) return false;
+    return true;
+  });
+
+  selected.clear();
+  page = 1;
+  render();
+}
+
+function render() {
+  const tbody = document.getElementById('js-tbody');
+  const start = (page - 1) * PAGE_SIZE;
+  const pageItems = filtered.slice(start, start + PAGE_SIZE);
+
+  if (pageItems.length === 0) {
+    tbody.innerHTML = '<tr class="empty-row"><td colspan="9">No images found.</td></tr>';
+    renderPagination();
+    updateBulkButtons();
+    return;
+  }
+
+  tbody.innerHTML = pageItems.map(img => `
+    <tr id="row-${img.id}" class="${selected.has(img.id) ? 'selected' : ''}">
+      <td><input type="checkbox" class="row-check" data-id="${img.id}" ${selected.has(img.id) ? 'checked' : ''} aria-label="Select ${img.title}" /></td>
+      <td>
+        ${img.thumbUrl
+          ? `<img class="thumb" src="${img.thumbUrl}" alt="${img.title}" loading="lazy" />`
+          : `<div class="thumb-placeholder">🖼</div>`}
+      </td>
+      <td class="title-cell"><p title="${img.title}">${img.title}</p></td>
+      <td>${img.category}</td>
+      <td style="color:var(--text-3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${img.event || '—'}</td>
+      <td>${img.year || '—'}</td>
+      <td><span class="badge ${img.published ? 'badge--pub' : 'badge--draft'}">${img.published ? 'Published' : 'Draft'}</span></td>
+      <td>${img.featured ? '<span class="badge badge--feat">Featured</span>' : '—'}</td>
+      <td>
+        <div class="row-actions">
+          <button class="icon-btn" data-action="edit" data-id="${img.id}" aria-label="Edit ${img.title}" title="Edit">✎</button>
+          <button class="icon-btn" data-action="toggle" data-id="${img.id}" data-pub="${img.published}" aria-label="${img.published ? 'Unpublish' : 'Publish'}" title="${img.published ? 'Unpublish' : 'Publish'}">${img.published ? '⊘' : '✓'}</button>
+          <button class="icon-btn icon-btn--danger" data-action="delete" data-id="${img.id}" aria-label="Delete ${img.title}" title="Delete">🗑</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  // Row checkbox listeners
+  tbody.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', () => {
+      const id = parseInt(cb.dataset.id);
+      cb.checked ? selected.add(id) : selected.delete(id);
+      document.getElementById(`row-${id}`)?.classList.toggle('selected', cb.checked);
+      updateBulkButtons();
+      syncSelectAll();
+    });
+  });
+
+  // Row action listeners
+  tbody.querySelectorAll('[data-action]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id  = parseInt(btn.dataset.id);
+      const act = btn.dataset.action;
+      if (act === 'edit')   openEditModal(id);
+      if (act === 'delete') confirmDelete([id]);
+      if (act === 'toggle') togglePublish(id, btn.dataset.pub === 'true');
+    });
+  });
+
+  renderPagination();
+  updateBulkButtons();
+}
+
+function renderPagination() {
+  const total = Math.ceil(filtered.length / PAGE_SIZE);
+  const pg = document.getElementById('js-pagination');
+  if (total <= 1) { pg.innerHTML = ''; return; }
+
+  let html = `<span>${filtered.length} images</span>`;
+  for (let i = 1; i <= total; i++) {
+    html += `<button class="page-btn ${i === page ? 'active' : ''}" data-page="${i}">${i}</button>`;
+  }
+  pg.innerHTML = html;
+  pg.querySelectorAll('.page-btn').forEach(btn => {
+    btn.addEventListener('click', () => { page = parseInt(btn.dataset.page); render(); });
+  });
+}
+
+/* ── UI Bindings ────────────────────────────────────────── */
+function bindUI() {
+  // Search & filter
+  document.getElementById('js-search').addEventListener('input', debounce(applyFilters, 250));
+  document.getElementById('js-filter-category').addEventListener('change', applyFilters);
+  document.getElementById('js-filter-published').addEventListener('change', applyFilters);
+
+  // Refresh
+  document.getElementById('js-refresh').addEventListener('click', loadImages);
+
+  // Select all
+  document.getElementById('js-select-all').addEventListener('change', (e) => {
+    const pageIds = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE).map(i => i.id);
+    if (e.target.checked) pageIds.forEach(id => selected.add(id));
+    else pageIds.forEach(id => selected.delete(id));
+    render();
+  });
+
+  // Bulk actions
+  document.getElementById('js-bulk-delete').addEventListener('click', () => {
+    if (selected.size) confirmDelete([...selected]);
+  });
+  document.getElementById('js-bulk-publish').addEventListener('click', () => {
+    if (selected.size) bulkPublish(true);
+  });
+  document.getElementById('js-bulk-unpublish').addEventListener('click', () => {
+    if (selected.size) bulkPublish(false);
+  });
+
+  // Upload modal
+  document.getElementById('js-upload-btn').addEventListener('click', () => openModal('js-upload-modal'));
+  document.getElementById('js-upload-close').addEventListener('click', () => closeModal('js-upload-modal'));
+  document.getElementById('js-upload-cancel').addEventListener('click', () => closeModal('js-upload-modal'));
+  document.getElementById('js-upload-submit').addEventListener('click', submitUpload);
+  document.getElementById('js-upload-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal('js-upload-modal');
+  });
+
+  // Dropzone
+  const dz = document.getElementById('js-dropzone');
+  const fi = document.getElementById('js-file-input');
+  dz.addEventListener('click', () => fi.click());
+  dz.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') fi.click(); });
+  dz.addEventListener('dragover', (e) => { e.preventDefault(); dz.classList.add('drag-over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
+  dz.addEventListener('drop', (e) => {
+    e.preventDefault(); dz.classList.remove('drag-over');
+    selectedFiles = [...e.dataTransfer.files].filter(f => f.type.startsWith('image/'));
+    renderFileList();
+  });
+  fi.addEventListener('change', () => {
+    selectedFiles = [...fi.files];
+    renderFileList();
+  });
+
+  // Edit modal
+  document.getElementById('js-edit-close').addEventListener('click', () => closeModal('js-edit-modal'));
+  document.getElementById('js-edit-cancel').addEventListener('click', () => closeModal('js-edit-modal'));
+  document.getElementById('js-edit-save').addEventListener('click', submitEdit);
+  document.getElementById('js-edit-modal').addEventListener('click', (e) => {
+    if (e.target === e.currentTarget) closeModal('js-edit-modal');
+  });
+}
+
+function renderFileList() {
+  const el = document.getElementById('js-file-list');
+  el.innerHTML = selectedFiles.length
+    ? selectedFiles.map(f => `<div class="file-item">📎 ${f.name} (${(f.size/1024/1024).toFixed(2)} MB)</div>`).join('')
+    : '';
+}
+
+/* ── Upload ─────────────────────────────────────────────── */
+async function submitUpload() {
+  if (!selectedFiles.length) { showToast('No files selected.', 'error'); return; }
+
+  const btn = document.getElementById('js-upload-submit');
+  btn.disabled = true;
+  btn.textContent = 'Uploading…';
+
+  const fd = new FormData();
+  selectedFiles.forEach(f => fd.append('images', f));
+  fd.append('title',     document.getElementById('up-title').value.trim());
+  fd.append('category',  document.getElementById('up-category').value);
+  fd.append('event',     document.getElementById('up-event').value.trim());
+  fd.append('year',      document.getElementById('up-year').value);
+  fd.append('description', document.getElementById('up-desc').value.trim());
+  fd.append('tags',      document.getElementById('up-tags').value.trim());
+  fd.append('featured',  document.getElementById('up-featured').checked);
+  fd.append('published', document.getElementById('up-published').checked);
+
+  try {
+    const res = await fetch(`${API}/images`, { method: 'POST', body: fd });
+    const data = await res.json();
+    closeModal('js-upload-modal');
+    selectedFiles = [];
+    renderFileList();
+    await loadImages();
+    showToast(`✓ Uploaded ${data.created?.length ?? 0} image(s).`, 'success');
+  } catch (e) {
+    showToast('Upload failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '⬆ Upload';
+  }
+}
+
+/* ── Edit ───────────────────────────────────────────────── */
+function openEditModal(id) {
+  const img = allImages.find(i => i.id === id);
+  if (!img) return;
+  document.getElementById('edit-id').value       = img.id;
+  document.getElementById('edit-title').value    = img.title;
+  document.getElementById('edit-desc').value     = img.description || '';
+  document.getElementById('edit-category').value = img.category;
+  document.getElementById('edit-event').value    = img.event || '';
+  document.getElementById('edit-year').value     = img.year || '';
+  document.getElementById('edit-order').value    = img.displayOrder;
+  document.getElementById('edit-tags').value     = Array.isArray(img.tags) ? img.tags.join(', ') : '';
+  document.getElementById('edit-featured').checked  = img.featured;
+  document.getElementById('edit-published').checked = img.published;
+  openModal('js-edit-modal');
+}
+
+async function submitEdit() {
+  const id = parseInt(document.getElementById('edit-id').value);
+  const body = {
+    title:        document.getElementById('edit-title').value.trim(),
+    description:  document.getElementById('edit-desc').value.trim(),
+    category:     document.getElementById('edit-category').value,
+    event:        document.getElementById('edit-event').value.trim(),
+    year:         parseInt(document.getElementById('edit-year').value) || null,
+    displayOrder: parseInt(document.getElementById('edit-order').value) || 0,
+    tags:         document.getElementById('edit-tags').value,
+    featured:     document.getElementById('edit-featured').checked,
+    published:    document.getElementById('edit-published').checked,
+  };
+
+  try {
+    const res = await fetch(`${API}/images/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(await res.text());
+    closeModal('js-edit-modal');
+    await loadImages();
+    showToast('✓ Saved.', 'success');
+  } catch (e) {
+    showToast('Save failed: ' + e.message, 'error');
+  }
+}
+
+/* ── Delete ─────────────────────────────────────────────── */
+async function confirmDelete(ids) {
+  if (!confirm(`Permanently delete ${ids.length} image(s)? This cannot be undone.`)) return;
+  try {
+    if (ids.length === 1) {
+      await fetch(`${API}/images/${ids[0]}`, { method: 'DELETE' });
+    } else {
+      await fetch(`${API}/images/bulk`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ids }),
+      });
+    }
+    selected.clear();
+    await loadImages();
+    showToast(`✓ Deleted ${ids.length} image(s).`, 'success');
+  } catch (e) {
+    showToast('Delete failed: ' + e.message, 'error');
+  }
+}
+
+/* ── Publish / Unpublish ────────────────────────────────── */
+async function togglePublish(id, currentlyPublished) {
+  try {
+    await fetch(`${API}/images/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ published: !currentlyPublished }),
+    });
+    await loadImages();
+    showToast(`✓ ${!currentlyPublished ? 'Published' : 'Unpublished'}.`, 'success');
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+async function bulkPublish(pub) {
+  try {
+    await fetch(`${API}/images/bulk`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ ids: [...selected], published: pub }),
+    });
+    selected.clear();
+    await loadImages();
+    showToast(`✓ ${pub ? 'Published' : 'Unpublished'} ${selected.size || '?'} image(s).`, 'success');
+  } catch (e) {
+    showToast('Failed: ' + e.message, 'error');
+  }
+}
+
+/* ── Modal helpers ──────────────────────────────────────── */
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  document.getElementById(id).querySelector('input, button, select, textarea')?.focus();
+}
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+/* ── Bulk button state ──────────────────────────────────── */
+function updateBulkButtons() {
+  const n = selected.size;
+  document.getElementById('js-bulk-delete').disabled    = n === 0;
+  document.getElementById('js-bulk-publish').disabled   = n === 0;
+  document.getElementById('js-bulk-unpublish').disabled = n === 0;
+}
+
+function syncSelectAll() {
+  const pageIds = filtered.slice((page-1)*PAGE_SIZE, page*PAGE_SIZE).map(i => i.id);
+  document.getElementById('js-select-all').checked = pageIds.length > 0 && pageIds.every(id => selected.has(id));
+}
+
+/* ── UI helpers ─────────────────────────────────────────── */
+function setStatus(msg) {
+  document.getElementById('js-status').textContent = msg;
+}
+
+let toastTimer;
+function showToast(msg, type = 'success') {
+  const el = document.getElementById('js-toast');
+  el.textContent = msg;
+  el.className = `toast toast--${type} show`;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3200);
+}
+
+function debounce(fn, ms) {
+  let t;
+  return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
+}
+</script>
+</body>
+</html>

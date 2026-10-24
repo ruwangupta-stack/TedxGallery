@@ -1,0 +1,35 @@
+# ─── Dependencies ──────────────────────────────
+node_modules/
+
+# ─── Environment Variables ─────────────────────
+.env
+.env.*
+
+# ─── Logs ──────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ─── Build / Dist ──────────────────────────────
+dist/
+build/
+
+# ─── OS Files ──────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# ─── SQLite Database Files ─────────────────────
+backend/gallery.db
+backend/gallery.db-shm
+backend/gallery.db-wal
+
+# ─── Uploaded Images (user-generated) ──────────
+backend/uploads/full/*
+backend/uploads/thumb/*
+!backend/uploads/full/.gitkeep
+!backend/uploads/thumb/.gitkeep
+
+# ─── IDE / Editor ──────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo

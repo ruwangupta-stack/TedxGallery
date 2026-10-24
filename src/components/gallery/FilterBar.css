@@ -1,0 +1,64 @@
+/* === Filter Bar =============================================== */
+.filter-bar {
+  padding: 0 var(--gutter);
+  margin-bottom: var(--sp-7);
+}
+
+/* Scrollable chip row — hidden scrollbar */
+.filter-bar__scroll {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+  padding-bottom: 2px;           /* prevent cut-off of focus ring */
+}
+
+.filter-bar__scroll::-webkit-scrollbar {
+  display: none;
+}
+
+/* Chip */
+.filter-chip {
+  flex-shrink: 0;
+  padding: 0.38rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+  border: 1px solid var(--color-divider);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color var(--dur-base) ease,
+    border-color var(--dur-base) ease,
+    background var(--dur-base) ease;
+  white-space: nowrap;
+}
+
+.filter-chip:hover {
+  color: var(--color-text-1);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Active state — TEDx red only */
+.filter-chip--active {
+  color: var(--color-accent) !important;
+  border-color: var(--color-accent) !important;
+  background: var(--color-accent-dim) !important;
+}
+
+/* === Responsive =============================================== */
+@media (max-width: 768px) {
+  .filter-bar {
+    margin-bottom: var(--sp-6);
+  }
+
+  .filter-chip {
+    font-size: 0.68rem;
+    padding: 0.35rem 0.85rem;
+  }
+}
